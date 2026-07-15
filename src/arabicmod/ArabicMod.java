@@ -7,11 +7,18 @@ import arc.freetype.FreeTypeFontGenerator;
 import arc.freetype.FreeTypeFontGenerator.FreeTypeFontParameter;
 import arc.graphics.Color;
 import arc.graphics.g2d.Font;
+import arc.struct.ObjectMap;
 import arc.struct.Seq;
 import mindustry.Vars;
 import mindustry.game.EventType.ClientLoadEvent;
 import mindustry.mod.Mod;
 import mindustry.ui.Fonts;
+
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.nio.charset.StandardCharsets;
+import java.util.Properties;
 
 /**
  * Arabic RTL support as a proper mod instead of a source/APK patch.
@@ -87,6 +94,35 @@ public class ArabicMod extends Mod{
         }
     }
 
+    /**
+     * Reads this mod's own bundles/bundle_ar.properties (packaged as a normal mod asset, so it's
+     * resolved the same way fonts/font_ar.ttf is) and merges every key/value directly into
+     * Core.bundle's live properties map, overriding whatever English (or other) defaults were
+     * already loaded for those keys. Must run before ArabicTextUtils.reshapeBundle(), since that
+     * only shapes/reorders Arabic text that's already present in the bundle -- it doesn't load
+     * translations on its own.
+     */
+    private void loadArabicBundle(){
+        Fi file = Core.files.internal("bundles/bundle_ar.properties");
+        if(!file.exists()){
+            arc.util.Log.warn("[arabic-support] bundles/bundle_ar.properties not found in mod assets.");
+            return;
+        }
+
+        Properties props = new Properties();
+        try(Reader reader = new InputStreamReader(file.read(), StandardCharsets.UTF_8)){
+            props.load(reader);
+        }catch(IOException e){
+            arc.util.Log.err("[arabic-support] Failed to read bundle_ar.properties", e);
+            return;
+        }
+
+        ObjectMap<String, String> target = Core.bundle.getProperties();
+        for(String key : props.stringPropertyNames()){
+            target.put(key, props.getProperty(key));
+        }
+    }
+
     private Fi fontFolder(){
         Fi folder = getConfigFolder().child("fonts");
         folder.mkdirs();
@@ -114,6 +150,7 @@ public class ArabicMod extends Mod{
     private void apply(){
         if(!Core.settings.getBool(KEY_ENABLED, true)) return;
 
+        loadArabicBundle();
         ArabicTextUtils.reshapeBundle(Core.bundle);
 
         Fi font = selectedFont();
