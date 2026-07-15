@@ -13,8 +13,6 @@ import mindustry.game.EventType.ClientLoadEvent;
 import mindustry.mod.Mod;
 import mindustry.ui.Fonts;
 
-import java.util.Locale;
-
 /**
  * Arabic RTL support as a proper mod instead of a source/APK patch.
  *
@@ -115,7 +113,6 @@ public class ArabicMod extends Mod{
 
     private void apply(){
         if(!Core.settings.getBool(KEY_ENABLED, true)) return;
-        if(!Locale.getDefault().getLanguage().equals("ar")) return;
 
         ArabicTextUtils.reshapeBundle(Core.bundle);
 
