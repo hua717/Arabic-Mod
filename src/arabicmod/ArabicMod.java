@@ -117,7 +117,7 @@ public class ArabicMod extends Mod{
         if(!Core.settings.getBool(KEY_ENABLED, true)) return;
         if(!Locale.getDefault().getLanguage().equals("ar")) return;
 
-        ArabicTextUtils.reshapeBundle(Vars.bundle);
+        ArabicTextUtils.reshapeBundle(Core.bundle);
 
         Fi font = selectedFont();
         if(font == null || !font.exists()){
